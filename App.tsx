@@ -171,10 +171,10 @@ const LandingPage = () => {
                 </div>
                 <h1 className="text-5xl lg:text-8xl font-black tracking-tighter text-slate-900 leading-[0.95] drop-shadow-sm">
                     Forge Your <br/>
-                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">Multiverse Saga</span>
+                    <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500">Superhero Saga</span>
                 </h1>
                 <p className="text-xl md:text-2xl text-slate-600 max-w-2xl mx-auto lg:mx-0 leading-relaxed font-medium">
-                    Transform your selfie into an AI-generated comic strip with 1 of 12 themes.
+                    Turn your selfie into an AI-generated comic strip as the Hero or Villain in 1 of 12 themes.
                 </p>
                 <div className="flex justify-center lg:justify-start pt-4">
                    {loading ? (
@@ -633,14 +633,14 @@ const PublicView = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Prominent Header with "Join HeroGen" CTA */}
+            {/* Prominent Header with "Forge Your Own Saga" CTA */}
             <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 py-4 px-6 sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2">
                         <div className="w-8 h-8 bg-indigo-600 rounded-lg flex items-center justify-center text-white font-bold text-lg">H</div>
                         <span className="font-bold text-xl text-slate-900 uppercase tracking-tighter">HeroGen</span>
                     </Link>
-                    <Link to="/" className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest shadow-md hover:bg-indigo-700 transition-all">Make Your Own Comic</Link>
+                    <Link to="/" className="bg-indigo-600 text-white px-6 py-2.5 rounded-xl font-black text-sm uppercase tracking-widest shadow-md hover:bg-indigo-700 transition-all">Forge Your Own Saga</Link>
                 </div>
             </header>
             
@@ -653,10 +653,10 @@ const PublicView = () => {
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full blur-[100px] opacity-20 -mr-32 -mt-32"></div>
                         <div className="relative z-10 space-y-6">
                             <h3 className="text-4xl md:text-6xl font-black uppercase tracking-tighter">Want to be the star <br/>of your own saga?</h3>
-                            <p className="text-indigo-200 text-lg font-medium max-w-lg mx-auto">Upload a single photo and HeroGen AI will forge a personalized 6-panel adventure across the multiverse.</p>
+                            <p className="text-indigo-200 text-lg font-medium max-w-lg mx-auto">Turn your selfie into an AI-generated comic strip as the Hero or Villain in 1 of 12 themes.</p>
                             <div className="pt-4">
                                 <Link to="/" className="inline-flex items-center gap-3 bg-white text-slate-900 px-12 py-5 rounded-2xl font-black text-xl uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl">
-                                    Create Your Comic <ArrowRight size={24} />
+                                    Forge Your Own Saga <ArrowRight size={24} />
                                 </Link>
                             </div>
                         </div>

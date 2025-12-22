@@ -92,6 +92,15 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
       }
     });
 
+    // Add copyright notice to the bottom of the 2nd page if it exists
+    const totalPages = doc.internal.getNumberOfPages();
+    if (totalPages >= 2) {
+      doc.setPage(2);
+      doc.setFontSize(10);
+      doc.setTextColor(150, 150, 150);
+      doc.text("© 2025 HeroGen Studios. All Rights Reserved.", 105, pageHeight - 10, { align: 'center' });
+    }
+
     doc.save(`${story.title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
   };
 
