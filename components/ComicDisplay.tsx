@@ -202,43 +202,50 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
             </div>
            )}
 
-           <div className="flex flex-wrap justify-center items-center gap-6">
-              {mode === 'owner' && (
-                <Link 
-                  to="/dashboard" 
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-xl"
-                >
-                    <ArrowLeft size={20} />
-                    Back to HQ
-                </Link>
-              )}
+           <div className="flex flex-col md:grid md:grid-cols-3 items-center gap-6 w-full">
+              {/* Left Side: Navigation / Secondary Action */}
+              <div className="flex justify-center md:justify-start w-full md:w-auto order-2 md:order-1">
+                {mode === 'owner' ? (
+                  <Link 
+                    to="/dashboard" 
+                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
+                  >
+                      <ArrowLeft size={20} />
+                      Back to HQ
+                  </Link>
+                ) : mode === 'creation' && onRestart && (
+                  <button onClick={onRestart} className="w-full sm:w-auto flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 transition-all">
+                      Reset Reality
+                  </button>
+                )}
+              </div>
 
-              <button
-                onClick={downloadPDF}
-                disabled={isGenerating}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
-              >
-                {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
-                {isGenerating ? 'Processing' : 'Download PDF'}
-              </button>
-
-              {mode === 'owner' && onDelete && (
+              {/* Center Side: Primary Action */}
+              <div className="flex justify-center w-full order-1 md:order-2">
                 <button
-                    onClick={() => {
-                        if(window.confirm("Delete this chronicle forever? This cannot be undone.")) onDelete();
-                    }}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-red-500 font-black text-xs uppercase tracking-widest p-5 hover:text-red-700 transition-colors"
+                  onClick={downloadPDF}
+                  disabled={isGenerating}
+                  className={`w-full sm:w-auto flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
                 >
-                    <Trash2 size={20} />
-                    Erase
+                  {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
+                  {isGenerating ? 'Processing' : 'Download PDF'}
                 </button>
-              )}
+              </div>
 
-              {mode === 'creation' && onRestart && (
-                 <button onClick={onRestart} className="flex-1 sm:flex-none flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 transition-all">
-                    Reset Reality
-                 </button>
-              )}
+              {/* Right Side: Destructive / Extra Actions */}
+              <div className="flex justify-center md:justify-end w-full md:w-auto order-3">
+                {mode === 'owner' && onDelete && (
+                  <button
+                      onClick={() => {
+                          if(window.confirm("Delete this chronicle forever? This cannot be undone.")) onDelete();
+                      }}
+                      className="flex items-center justify-center gap-2 text-red-500 font-black text-xs uppercase tracking-widest p-4 hover:text-red-700 transition-colors"
+                  >
+                      <Trash2 size={20} />
+                      Erase
+                  </button>
+                )}
+              </div>
            </div>
         </div>
       </div>
