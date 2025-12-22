@@ -378,8 +378,7 @@ const Dashboard = () => {
                 </div>
                 <div className="flex-1 space-y-6 text-center md:text-left">
                     <div className="space-y-2">
-                        <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">Status: Active</h2>
-                        <p className="text-slate-500 font-bold text-lg uppercase tracking-widest">Operator: {user.name}</p>
+                        <h2 className="text-4xl font-black text-slate-900 uppercase tracking-tighter">{user.name}</h2>
                     </div>
                     <Link to="/create" className="inline-flex items-center gap-3 bg-slate-900 text-white px-10 py-5 rounded-2xl font-black text-lg uppercase tracking-widest shadow-2xl hover:bg-indigo-600 hover:scale-105 active:scale-95 transition-all">
                         <Plus size={24}/> Forge New Saga

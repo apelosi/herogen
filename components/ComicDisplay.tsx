@@ -92,13 +92,13 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
       }
     });
 
-    // Add copyright notice to the bottom of the 2nd page if it exists
+    // Add copyright notice to all pages
     const totalPages = doc.internal.getNumberOfPages();
-    if (totalPages >= 2) {
-      doc.setPage(2);
+    for (let i = 1; i <= totalPages; i++) {
+      doc.setPage(i);
       doc.setFontSize(10);
       doc.setTextColor(150, 150, 150);
-      doc.text("© 2025 HeroGen Studios. All Rights Reserved.", 105, pageHeight - 10, { align: 'center' });
+      doc.text("© 2025 HeroGen Studios. All Rights Reserved.", 105, pageHeight - 12, { align: 'center' });
     }
 
     doc.save(`${story.title.replace(/\s+/g, '_').toLowerCase()}.pdf`);
@@ -202,16 +202,7 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
             </div>
            )}
 
-           <div className="flex flex-wrap justify-center gap-4">
-              <button
-                onClick={downloadPDF}
-                disabled={isGenerating}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
-              >
-                {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
-                {isGenerating ? 'Processing' : 'Download PDF'}
-              </button>
-
+           <div className="flex flex-wrap justify-center items-center gap-6">
               {mode === 'owner' && (
                 <Link 
                   to="/dashboard" 
@@ -221,6 +212,15 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
                     Back to HQ
                 </Link>
               )}
+
+              <button
+                onClick={downloadPDF}
+                disabled={isGenerating}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
+              >
+                {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
+                {isGenerating ? 'Processing' : 'Download PDF'}
+              </button>
 
               {mode === 'owner' && onDelete && (
                 <button
