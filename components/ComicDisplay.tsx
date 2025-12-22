@@ -96,43 +96,39 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
   };
 
   return (
-    <div className="w-full max-w-4xl mx-auto p-4 space-y-8 animate-fade-in pb-24">
-      <div className="text-center space-y-2">
-        <h1 className="text-3xl md:text-5xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 to-purple-600 uppercase tracking-tighter">
+    <div className="w-full max-w-4xl mx-auto p-4 space-y-12 animate-fade-in pb-16">
+      <div className="text-center space-y-4">
+        <h1 className="text-4xl md:text-6xl font-black text-transparent bg-clip-text bg-gradient-to-r from-indigo-600 via-purple-600 to-pink-500 uppercase tracking-tighter leading-tight pb-2">
           {story.title}
         </h1>
         {isGenerating && (
-            <div className="flex items-center justify-center gap-2 text-indigo-600 font-bold mt-2 animate-pulse">
-                <Loader2 className="animate-spin" size={18} />
-                <span>Bringing your saga to life, panel by panel...</span>
+            <div className="flex items-center justify-center gap-3 text-indigo-600 font-black uppercase tracking-widest text-sm animate-pulse">
+                <Loader2 className="animate-spin" size={20} />
+                <span>Manifesting Reality...</span>
             </div>
         )}
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-10">
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-10 md:gap-12">
         {story.panels.map((panel) => (
-          <div key={panel.id} className="bg-white rounded-2xl shadow-xl overflow-hidden border-2 border-slate-900 shadow-[10px_10px_0px_0px_rgba(0,0,0,1)] flex flex-col transition-transform hover:-translate-y-1">
-            <div className="relative aspect-square bg-gray-100 flex items-center justify-center overflow-hidden">
+          <div key={panel.id} className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border-4 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
+            <div className="relative aspect-square bg-slate-50 flex items-center justify-center overflow-hidden">
               {panel.imageUrl ? (
                   <img src={panel.imageUrl} alt={`Panel ${panel.id}`} className="w-full h-full object-cover animate-fade-in" />
               ) : (
                   <div className="w-full h-full bg-slate-50 flex flex-col items-center justify-center text-gray-400 relative">
                       <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-white to-slate-50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]"></div>
-                      <div className="relative z-10 flex flex-col items-center gap-4">
-                        <div className="w-16 h-16 rounded-full bg-white shadow-inner flex items-center justify-center">
-                           <Loader2 className="animate-spin text-indigo-400" size={32} />
+                      <div className="relative z-10 flex flex-col items-center gap-6">
+                        <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center border-2 border-slate-100">
+                           <Loader2 className="animate-spin text-indigo-400" size={40} />
                         </div>
-                        <span className="text-xs font-black uppercase tracking-[0.2em] text-gray-400">Rendering Panel {panel.id}</span>
+                        <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Rendering Scene</span>
                       </div>
                   </div>
               )}
-              
-              <div className="absolute top-4 left-4 bg-slate-900 text-white text-[10px] font-black px-3 py-1.5 rounded-full z-20 shadow-lg tracking-widest">
-                PNL #{panel.id}
-              </div>
             </div>
-            <div className="p-6 bg-white flex-grow flex items-center justify-center text-center z-20 relative border-t-2 border-slate-900">
-              <p className="font-bold text-slate-800 font-serif italic text-lg leading-relaxed">
+            <div className="p-8 bg-white flex-grow flex items-center justify-center text-center z-20 relative border-t-4 border-slate-900">
+              <p className="font-black text-slate-800 font-serif italic text-lg md:text-xl leading-relaxed">
                 "{panel.caption}"
               </p>
             </div>
@@ -141,21 +137,21 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
       </div>
 
       {/* Control Panel */}
-      <div className="bg-white rounded-[2rem] shadow-2xl p-8 border border-gray-100 space-y-8">
+      <div className="bg-white rounded-[3rem] shadow-2xl p-10 border-4 border-slate-900 space-y-10">
         
         {/* Rating Section - Hidden in Public Mode */}
         {mode !== 'public' && (
-          <div className="text-center space-y-4">
-            <h3 className="text-xl font-black text-slate-900 uppercase tracking-wider">Rate this Epic</h3>
-            <div className="flex justify-center gap-1 sm:gap-3 flex-wrap">
+          <div className="text-center space-y-6">
+            <h3 className="text-2xl font-black text-slate-900 uppercase tracking-tight">Rate this Epic</h3>
+            <div className="flex justify-center gap-2 sm:gap-4 flex-wrap">
               {[1, 2, 3, 4, 5, 6, 7, 8, 9, 10].map((num) => (
                 <button
                   key={num}
                   onClick={() => handleRate(num)}
                   disabled={isGenerating}
-                  className={`p-1.5 transition-all transform hover:scale-125 ${rating >= num ? 'text-yellow-400' : 'text-gray-200'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
+                  className={`p-1 transition-all transform hover:scale-125 ${rating >= num ? 'text-yellow-400' : 'text-gray-200'} ${isGenerating ? 'opacity-50 cursor-not-allowed' : ''}`}
                 >
-                  <Star size={28} fill={rating >= num ? "currentColor" : "none"} />
+                  <Star size={32} fill={rating >= num ? "currentColor" : "none"} />
                 </button>
               ))}
             </div>
@@ -163,35 +159,35 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
         )}
 
         {/* Action Buttons */}
-        <div className="flex flex-col gap-6">
+        <div className="flex flex-col gap-8">
            {/* Sharing Controls for Owner */}
            {mode === 'owner' && onTogglePublic && (
-            <div className="flex flex-col md:flex-row items-center justify-between bg-indigo-50/50 p-6 rounded-[1.5rem] border border-indigo-100 gap-6">
-              <div className="flex items-center gap-4">
-                 <div className={`w-12 h-12 rounded-2xl flex items-center justify-center shadow-sm ${isPublic ? 'bg-indigo-600 text-white' : 'bg-white text-gray-400 border border-gray-200'}`}>
-                    {isPublic ? <Globe size={24}/> : <Lock size={24}/>}
+            <div className="flex flex-col md:flex-row items-center justify-between bg-indigo-50/50 p-8 rounded-[2rem] border-2 border-indigo-100 gap-8">
+              <div className="flex items-center gap-6">
+                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isPublic ? 'bg-indigo-600 text-white' : 'bg-white text-gray-300 border-2 border-gray-100'}`}>
+                    {isPublic ? <Globe size={28}/> : <Lock size={28}/>}
                  </div>
                  <div className="text-left">
-                    <p className="font-black text-slate-900 uppercase text-sm tracking-wide">{isPublic ? 'Public Saga' : 'Private Chronicle'}</p>
-                    <p className="text-xs text-slate-500 font-medium">{isPublic ? 'Visible to anyone with the link.' : 'Only visible to your account.'}</p>
+                    <p className="font-black text-slate-900 uppercase text-lg tracking-tight">{isPublic ? 'Saga Public' : 'Classified Saga'}</p>
+                    <p className="text-sm text-slate-500 font-medium">{isPublic ? 'The link below is now live.' : 'Only your eyes can see this.'}</p>
                  </div>
               </div>
               
-              <div className="flex items-center gap-3 w-full md:w-auto">
+              <div className="flex items-center gap-4 w-full md:w-auto">
                 {isPublic && (
                     <button 
                         onClick={copyToClipboard}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 text-indigo-600 font-bold bg-white px-5 py-3 rounded-xl hover:bg-indigo-100 transition-all border border-indigo-200 shadow-sm"
+                        className="flex-1 md:flex-none flex items-center justify-center gap-2 text-indigo-600 font-black uppercase tracking-widest text-xs bg-white px-6 py-4 rounded-xl hover:bg-indigo-600 hover:text-white transition-all border-2 border-indigo-100 shadow-sm"
                     >
                         <LinkIcon size={18}/>
-                        {copied ? 'Copied!' : 'Copy Link'}
+                        {copied ? 'Copied' : 'Copy Link'}
                     </button>
                 )}
                 <button 
                     onClick={() => onTogglePublic(!isPublic)}
-                    className={`flex-1 md:flex-none px-6 py-3 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-md ${isPublic ? 'bg-white text-slate-700 border border-gray-200 hover:bg-gray-50' : 'bg-indigo-600 text-white hover:bg-indigo-700'}`}
+                    className={`flex-1 md:flex-none px-8 py-4 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-xl ${isPublic ? 'bg-white text-slate-900 border-2 border-slate-900 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-indigo-600'}`}
                 >
-                    {isPublic ? 'Make Private' : 'Go Public'}
+                    {isPublic ? 'Restrict Access' : 'Go Public'}
                 </button>
               </div>
             </div>
@@ -201,37 +197,37 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
               <button
                 onClick={downloadPDF}
                 disabled={isGenerating}
-                className={`flex-1 sm:flex-none flex items-center justify-center gap-3 bg-indigo-600 text-white px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest shadow-xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
+                className={`flex-1 sm:flex-none flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
               >
-                {isGenerating ? <Loader2 className="animate-spin" size={20}/> : <Download size={20} />}
-                {isGenerating ? 'Forging...' : 'Download PDF'}
+                {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
+                {isGenerating ? 'Processing' : 'Download PDF'}
               </button>
 
               {mode === 'owner' && (
                 <Link 
                   to="/dashboard" 
-                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-8 py-4 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-lg"
+                  className="flex-1 sm:flex-none flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black transition-all shadow-xl"
                 >
-                    <ArrowLeft size={18} />
-                    Dashboard
+                    <ArrowLeft size={20} />
+                    Back to HQ
                 </Link>
               )}
 
               {mode === 'owner' && onDelete && (
                 <button
                     onClick={() => {
-                        if(window.confirm("Are you sure you want to delete this saga forever?")) onDelete();
+                        if(window.confirm("Delete this chronicle forever? This cannot be undone.")) onDelete();
                     }}
-                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-red-500 font-black text-xs uppercase tracking-widest p-4 hover:text-red-700 transition-colors"
+                    className="flex-1 sm:flex-none flex items-center justify-center gap-2 text-red-500 font-black text-xs uppercase tracking-widest p-5 hover:text-red-700 transition-colors"
                 >
-                    <Trash2 size={18} />
-                    Delete Saga
+                    <Trash2 size={20} />
+                    Erase
                 </button>
               )}
 
               {mode === 'creation' && onRestart && (
-                 <button onClick={onRestart} className="flex-1 sm:flex-none flex items-center gap-2 px-8 py-4 rounded-2xl border-2 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50">
-                    Start Over
+                 <button onClick={onRestart} className="flex-1 sm:flex-none flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 transition-all">
+                    Reset Reality
                  </button>
               )}
            </div>
