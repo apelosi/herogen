@@ -204,7 +204,7 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
 
            <div className="flex flex-col md:grid md:grid-cols-3 items-center gap-6 w-full">
               {/* Left Side: Navigation / Secondary Action */}
-              <div className="flex justify-center md:justify-start w-full md:w-auto order-2 md:order-1">
+              <div className="flex justify-center md:justify-start w-full order-2 md:order-1">
                 {mode === 'owner' ? (
                   <Link 
                     to="/dashboard" 
@@ -214,13 +214,13 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
                       Back to HQ
                   </Link>
                 ) : mode === 'creation' && onRestart && (
-                  <button onClick={onRestart} className="w-full sm:w-auto flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 transition-all">
+                  <button onClick={onRestart} className="w-full sm:w-auto flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all shadow-xl">
                       Reset Reality
                   </button>
                 )}
               </div>
 
-              {/* Center Side: Primary Action */}
+              {/* Center Side: Primary Action - Perfectly Centered */}
               <div className="flex justify-center w-full order-1 md:order-2">
                 <button
                   onClick={downloadPDF}
@@ -232,17 +232,17 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
                 </button>
               </div>
 
-              {/* Right Side: Destructive / Extra Actions */}
-              <div className="flex justify-center md:justify-end w-full md:w-auto order-3">
+              {/* Right Side: Destructive Action */}
+              <div className="flex justify-center md:justify-end w-full order-3">
                 {mode === 'owner' && onDelete && (
                   <button
                       onClick={() => {
                           if(window.confirm("Delete this chronicle forever? This cannot be undone.")) onDelete();
                       }}
-                      className="flex items-center justify-center gap-2 text-red-500 font-black text-xs uppercase tracking-widest p-4 hover:text-red-700 transition-colors"
+                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-red-600 text-white font-black text-sm uppercase tracking-widest hover:bg-red-700 hover:scale-105 active:scale-95 transition-all shadow-xl"
                   >
                       <Trash2 size={20} />
-                      Erase
+                      DELETE
                   </button>
                 )}
               </div>
