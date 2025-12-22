@@ -1,0 +1,5 @@
+{
+  "name": "HeroGen Comic Creator",
+  "description": "Transform yourself into a superhero or villain in a custom 6-frame comic strip using Gemini AI.",
+  "requestFramePermissions": []
+}
