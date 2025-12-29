@@ -10,7 +10,7 @@ import AlignmentSelector from './components/AlignmentSelector';
 import ComicDisplay from './components/ComicDisplay';
 import LoadingScreen from './components/LoadingScreen';
 import * as Icons from 'lucide-react';
-import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, ArrowRight, ChevronRight, LogOut, Zap, Rocket, Sword, Shield } from 'lucide-react';
+import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, ArrowRight, ChevronRight, LogOut, Zap, Rocket, Sword, Shield, BookOpen } from 'lucide-react';
 
 // LAZY LOAD camera component
 const PhotoCapture = lazy(() => import('./components/PhotoCapture'));
@@ -43,17 +43,24 @@ const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => 
 // --- HERO ANIMATION ---
 const HeroComicAnimation = () => {
   const [frame, setFrame] = useState(1);
-  const totalFrames = 6;
+  const totalFrames = 12; // Cycles through 6 from sample-1 then 6 from sample-2
 
   useEffect(() => {
-    // Frame duration increased to 2 seconds as requested
+    // Frame duration: 2 seconds per image
     const timer = setInterval(() => {
       setFrame((prev) => (prev % totalFrames) + 1);
     }, 2000);
     return () => clearInterval(timer);
   }, []);
 
-  const getImagePath = (f: number) => `/public/sample-${f}.png`;
+  // Logic to switch folders halfway through the sequence
+  const getImagePath = (f: number) => {
+    if (f <= 6) {
+      return `/public/sample-1/sample-${f}.png`;
+    } else {
+      return `/public/sample-2/sample-${f - 6}.png`;
+    }
+  };
 
   return (
     <div className="relative z-10 bg-white p-3 md:p-4 rounded-3xl shadow-2xl border border-gray-100 rotate-2 transition-transform duration-1000 max-w-sm lg:max-w-none mx-auto">
@@ -65,6 +72,7 @@ const HeroComicAnimation = () => {
           alt={`Hero Frame ${frame}`}
           onError={(e) => {
             const target = e.target as HTMLImageElement;
+            // Fallback strategy: try without /public prefix or use placeholder
             if (target.src.includes('/public/')) {
               target.src = target.src.replace('/public/', '/');
             } else {
@@ -81,6 +89,7 @@ const HeroComicAnimation = () => {
 const LandingPage = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
+  const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
   const navigate = useNavigate();
 
   useEffect(() => {
@@ -93,7 +102,7 @@ const LandingPage = () => {
     const initGSI = () => {
       if ((window as any).google?.accounts?.id) {
         (window as any).google.accounts.id.initialize({
-          client_id: "600610510152-lercn1ar908bmhulp4b06p6occlkstd5.apps.googleusercontent.com",
+          client_id: "600610510152-lercn1ar908bmhulp4p06p6occlkstd5.apps.googleusercontent.com",
           callback: async (response: any) => {
             setLoading(true);
             try {
@@ -128,17 +137,43 @@ const LandingPage = () => {
     }
   };
 
-  const sampleComic = {
-    title: "The Guardian's Resolve",
-    panels: [
-        { id: 1, caption: "Captain Kaelen, vigilant guardian of Sector Gamma, watches over the serene cosmic expanse.", imageUrl: "/public/sample-1.png" },
-        { id: 2, caption: "Suddenly, a critical distress signal shatters the tranquility!", imageUrl: "/public/sample-2.png" },
-        { id: 3, caption: "Duty calls. Kaelen scrambles to his starfighter.", imageUrl: "/public/sample-3.png" },
-        { id: 4, caption: "Outnumbered but unyielding, Kaelen maneuvers through enemy fire.", imageUrl: "/public/sample-4.png" },
-        { id: 5, caption: "With a perfectly timed energy blast, Kaelen cripples the enemy flagship!", imageUrl: "/public/sample-5.png" },
-        { id: 6, caption: "Peace restored, Kaelen looks out at the galaxy once more.", imageUrl: "/public/sample-6.png" },
-    ]
-  };
+  // Paths match directory structure from user's file explorer
+  const SAMPLE_COMICS = [
+    {
+        id: "sample-1",
+        title: "The Guardian's Resolve",
+        alignment: "HERO",
+        themeId: "space",
+        theme: "Space Opera",
+        panels: [
+            { id: 1, caption: "Captain Kaelen, vigilant guardian of Sector Gamma, watches over the serene cosmic expanse.", imageUrl: "/public/sample-1/sample-1.png" },
+            { id: 2, caption: "Suddenly, a critical distress signal shatters the tranquility!", imageUrl: "/public/sample-1/sample-2.png" },
+            { id: 3, caption: "Duty calls. Kaelen scrambles to his starfighter.", imageUrl: "/public/sample-1/sample-3.png" },
+            { id: 4, caption: "Outnumbered but unyielding, Kaelen maneuvers through enemy fire.", imageUrl: "/public/sample-1/sample-4.png" },
+            { id: 5, caption: "With a perfectly timed energy blast, Kaelen cripples the enemy flagship!", imageUrl: "/public/sample-1/sample-5.png" },
+            { id: 6, caption: "Peace restored, Kaelen looks out at the galaxy once more.", imageUrl: "/public/sample-1/sample-6.png" },
+        ]
+    },
+    {
+        id: "sample-2",
+        title: "The Awakening of the Shadow Queen",
+        alignment: "VILLAIN",
+        themeId: "mystic",
+        theme: "Ancient Mystic",
+        panels: [
+            { id: 1, caption: "Deep within the Sunken Ziggurat, Elara finally reached the Solar Core.", imageUrl: "/public/sample-2/sample-1.png" },
+            { id: 2, caption: "For centuries, the mystics called her a heretic. Now, they would call her master.", imageUrl: "/public/sample-2/sample-2.png" },
+            { id: 3, caption: "She whispered the forbidden incantations, her voice echoing through the hollow halls.", imageUrl: "/public/sample-2/sample-3.png" },
+            { id: 4, caption: "The Temple Guardians rushed to stop her, but they were far too late.", imageUrl: "/public/sample-2/sample-4.png" },
+            { id: 5, caption: "The Solar Core shattered, releasing the primordial shadows she had long sought.", imageUrl: "/public/sample-2/sample-5.png" },
+            { id: 6, caption: "The era of light was over. Her reign had finally begun.", imageUrl: "/public/sample-2/sample-6.png" },
+        ]
+    }
+  ];
+
+  const currentSample = SAMPLE_COMICS[currentSampleIndex];
+  const currentTheme = THEMES.find(t => t.id === currentSample.themeId);
+  const ThemeIcon = currentTheme ? (Icons as any)[currentTheme.icon] || Icons.HelpCircle : Icons.HelpCircle;
 
   return (
     <div className="min-h-screen bg-white font-sans flex flex-col overflow-x-hidden">
@@ -147,14 +182,10 @@ const LandingPage = () => {
            background-image: radial-gradient(rgba(0,0,0,0.05) 2px, transparent 2px);
            background-size: 20px 20px;
          }
-         .comic-blob {
-            clip-path: polygon(5% 0%, 100% 0%, 95% 100%, 0% 100%);
-         }
        `}</style>
        <AppHeader />
 
        <section className="relative pt-12 md:pt-20 pb-24 px-6 overflow-hidden halftone-bg">
-         {/* Decorative Comic Elements */}
          <div className="absolute top-10 right-[10%] opacity-10 rotate-12 pointer-events-none hidden lg:block">
             <Zap size={120} className="text-yellow-400 fill-current" />
          </div>
@@ -194,12 +225,10 @@ const LandingPage = () => {
                    )}
                 </div>
             </div>
-            {/* Animation shown on all screen sizes now, just stacked on mobile */}
             <div className="relative animate-fade-in delay-200">
                <div className="absolute -inset-4 bg-gradient-to-r from-indigo-500 to-purple-500 rounded-[3rem] opacity-20 blur-2xl animate-pulse"></div>
                <HeroComicAnimation />
                
-               {/* Floating elements for "pop" */}
                <div className="absolute -top-6 -right-6 w-16 h-16 bg-yellow-400 rounded-2xl rotate-12 shadow-xl flex items-center justify-center text-slate-900 font-black text-xl border-4 border-white hidden md:flex">
                   ZAP!
                </div>
@@ -210,7 +239,6 @@ const LandingPage = () => {
          </div>
        </section>
 
-       {/* THEMES SECTION */}
        <section className="py-24 px-6 bg-white overflow-hidden halftone-bg">
           <div className="max-w-7xl mx-auto text-center space-y-16">
              <div className="space-y-4">
@@ -245,20 +273,37 @@ const LandingPage = () => {
 
        <section id="sample-comic" className="py-24 px-6 bg-slate-50 border-t border-gray-200 halftone-bg">
           <div className="max-w-7xl mx-auto">
-             <div className="bg-white p-6 md:p-12 rounded-[3rem] shadow-2xl border-4 border-slate-900 relative">
-                {/* Comic Badge Decoration */}
-                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-400 border-4 border-slate-900 px-8 py-3 rounded-full shadow-lg z-20 font-black uppercase tracking-widest text-slate-900">
-                    PREVIEW ISSUE
+             <div className="text-center mb-16 space-y-6">
+                <h2 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter">Featured Chronicles</h2>
+                <p className="text-xl text-slate-500 font-medium">Check out samples of legendary tales generated by our engine.</p>
+                <div className="flex flex-col md:flex-row justify-center items-center gap-4 md:gap-8 pt-4">
+                   {SAMPLE_COMICS.map((sample, idx) => (
+                      <button 
+                         key={sample.id}
+                         onClick={() => setCurrentSampleIndex(idx)}
+                         className={`px-8 py-4 rounded-2xl font-black text-sm uppercase tracking-widest transition-all w-full md:w-auto text-center ${currentSampleIndex === idx ? 'bg-slate-900 text-white shadow-[0_10px_30px_rgba(0,0,0,0.15)] scale-105' : 'bg-white text-slate-400 border border-gray-200 hover:text-slate-600 hover:bg-white'}`}
+                      >
+                         {sample.title}
+                      </button>
+                   ))}
+                </div>
+             </div>
+
+             <div className="bg-white p-6 md:p-12 rounded-[3rem] shadow-2xl border-4 border-slate-900 relative animate-fade-in" key={currentSample.id}>
+                {/* Updated Badge: Displays Alignment + Theme Name */}
+                <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-400 border-4 border-slate-900 px-8 py-3 rounded-full shadow-lg z-20 font-black uppercase tracking-widest text-slate-900 flex items-center gap-3">
+                    <ThemeIcon size={20} />
+                    <span>{currentSample.alignment} • {currentSample.theme}</span>
                 </div>
                 
                 <div className="text-center mb-16 space-y-4">
-                    <h3 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter">
-                        {sampleComic.title}
+                    <h3 className="text-4xl md:text-6xl font-black text-slate-900 uppercase tracking-tighter pt-4">
+                        {currentSample.title}
                     </h3>
                     <div className="w-16 h-1 bg-slate-900 mx-auto rounded-full"></div>
                 </div>
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-10">
-                    {sampleComic.panels.map((panel) => (
+                    {currentSample.panels.map((panel) => (
                         <div key={panel.id} className="group flex flex-col bg-white border-4 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] hover:shadow-none hover:translate-x-3 hover:translate-y-3 transition-all">
                             <div style={{ aspectRatio: '4/3' }} className="w-full relative overflow-hidden bg-gray-100">
                                 <img 
@@ -632,7 +677,6 @@ const PublicView = () => {
 
     return (
         <div className="min-h-screen bg-gray-50">
-            {/* Prominent Header with "Forge Your Own Saga" CTA */}
             <header className="bg-white/90 backdrop-blur-md border-b border-gray-100 py-4 px-6 sticky top-0 z-50">
                 <div className="max-w-6xl mx-auto flex justify-between items-center">
                     <Link to="/" className="flex items-center gap-2">
@@ -645,8 +689,6 @@ const PublicView = () => {
             
             <div className="pt-12 halftone-bg">
                 <ComicDisplay story={comic} mode="public" />
-                
-                {/* Bottom CTA for public viewers */}
                 <div className="max-w-4xl mx-auto px-4 pb-24 text-center">
                     <div className="bg-slate-900 text-white rounded-[2.5rem] p-12 md:p-20 shadow-[0_20px_60px_rgba(0,0,0,0.2)] space-y-8 relative overflow-hidden">
                         <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-600 rounded-full blur-[100px] opacity-20 -mr-32 -mt-32"></div>
