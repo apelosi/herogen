@@ -693,9 +693,14 @@ const PublicView = () => {
   const { id } = useParams();
   const [comic, setComic] = useState<SavedComic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const load = async () => {
+      // Get current user to handle the 'Go to Dashboard' link
+      const u = await authService.getCurrentUser();
+      setUser(u);
+
       if (!id) return;
       const c = await dbService.getComic(id);
       if (c && c.isPublic) setComic(c);
