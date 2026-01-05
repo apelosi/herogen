@@ -13,7 +13,8 @@ export default defineConfig(({ mode }) => {
     plugins: [react()],
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY)
+      'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
+      'process.env.DATABASE_URL': JSON.stringify(env.DATABASE_URL || env.NETLIFY_DATABASE_URL)
     },
     resolve: {
       alias: {

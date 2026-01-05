@@ -1,95 +1,98 @@
 import { SavedComic, User } from "../types";
-
-const DB_NAME = "HeroGenDB";
-const DB_VERSION = 1;
-const STORE_USERS = "users";
-const STORE_COMICS = "comics";
-
-const openDB = (): Promise<IDBDatabase> => {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open(DB_NAME, DB_VERSION);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = (event) => {
-      const db = (event.target as IDBOpenDBRequest).result;
-      if (!db.objectStoreNames.contains(STORE_USERS)) {
-        db.createObjectStore(STORE_USERS, { keyPath: "id" });
-      }
-      if (!db.objectStoreNames.contains(STORE_COMICS)) {
-        const comicStore = db.createObjectStore(STORE_COMICS, { keyPath: "id" });
-        comicStore.createIndex("userId", "userId", { unique: false });
-      }
-    };
-  });
-};
+import { db } from "../db";
+import { users, comics } from "../db/schema";
+import { eq } from "drizzle-orm";
 
 export const dbService = {
   async saveUser(user: User): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_USERS, "readwrite");
-      const store = tx.objectStore(STORE_USERS);
-      store.put(user);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+    await db.insert(users).values({
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photoUrl: user.photoUrl
+    }).onConflictDoUpdate({
+      target: users.id,
+      set: {
+        name: user.name,
+        email: user.email,
+        photoUrl: user.photoUrl
+      }
     });
   },
 
   async getUser(id: string): Promise<User | undefined> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_USERS, "readonly");
-      const store = tx.objectStore(STORE_USERS);
-      const req = store.get(id);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    const result = await db.select().from(users).where(eq(users.id, id)).limit(1);
+    if (result.length === 0) return undefined;
+
+    const user = result[0];
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photoUrl: user.photoUrl
+    };
   },
 
   async saveComic(comic: SavedComic): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_COMICS, "readwrite");
-      const store = tx.objectStore(STORE_COMICS);
-      store.put(comic);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
+    await db.insert(comics).values({
+      id: comic.id,
+      userId: comic.userId,
+      title: comic.title,
+      themeId: comic.themeId,
+      alignment: comic.alignment,
+      panels: comic.panels,
+      isPublic: comic.isPublic,
+      rating: comic.rating,
+      createdAt: comic.createdAt
+    }).onConflictDoUpdate({
+      target: comics.id,
+      set: {
+        title: comic.title,
+        themeId: comic.themeId,
+        alignment: comic.alignment,
+        panels: comic.panels,
+        isPublic: comic.isPublic,
+        rating: comic.rating,
+        createdAt: comic.createdAt
+      }
     });
   },
 
   async getComicsByUser(userId: string): Promise<SavedComic[]> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_COMICS, "readonly");
-      const store = tx.objectStore(STORE_COMICS);
-      const index = store.index("userId");
-      const req = index.getAll(userId);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    const result = await db.select().from(comics).where(eq(comics.userId, userId));
+
+    return result.map(comic => ({
+      id: comic.id,
+      userId: comic.userId,
+      title: comic.title,
+      themeId: comic.themeId,
+      alignment: comic.alignment as 'HERO' | 'VILLAIN',
+      panels: comic.panels as any,
+      isPublic: comic.isPublic,
+      rating: comic.rating,
+      createdAt: comic.createdAt
+    }));
   },
 
   async getComic(id: string): Promise<SavedComic | undefined> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_COMICS, "readonly");
-      const store = tx.objectStore(STORE_COMICS);
-      const req = store.get(id);
-      req.onsuccess = () => resolve(req.result);
-      req.onerror = () => reject(req.error);
-    });
+    const result = await db.select().from(comics).where(eq(comics.id, id)).limit(1);
+    if (result.length === 0) return undefined;
+
+    const comic = result[0];
+    return {
+      id: comic.id,
+      userId: comic.userId,
+      title: comic.title,
+      themeId: comic.themeId,
+      alignment: comic.alignment as 'HERO' | 'VILLAIN',
+      panels: comic.panels as any,
+      isPublic: comic.isPublic,
+      rating: comic.rating,
+      createdAt: comic.createdAt
+    };
   },
 
   async deleteComic(id: string): Promise<void> {
-    const db = await openDB();
-    return new Promise((resolve, reject) => {
-      const tx = db.transaction(STORE_COMICS, "readwrite");
-      const store = tx.objectStore(STORE_COMICS);
-      store.delete(id);
-      tx.oncomplete = () => resolve();
-      tx.onerror = () => reject(tx.error);
-    });
+    await db.delete(comics).where(eq(comics.id, id));
   }
 };

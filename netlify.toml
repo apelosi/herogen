@@ -1,0 +1,16 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[dev]
+  command = "vite"
+  targetPort = 3000
+  port = 8889
+  autoLaunch = false
+
+# SPA redirects for client-side routing
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+  force = false

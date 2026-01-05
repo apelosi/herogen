@@ -5,14 +5,21 @@
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "dev:netlify": "netlify dev",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "db:generate": "drizzle-kit generate",
+    "db:migrate": "netlify dev:exec drizzle-kit migrate",
+    "db:studio": "netlify dev:exec drizzle-kit studio"
   },
   "dependencies": {
     "@google/genai": "^1.33.0",
+    "@netlify/neon": "^0.1.0",
     "@supabase/supabase-js": "^2.89.0",
+    "drizzle-orm": "^0.45.1",
     "jspdf": "^3.0.4",
     "lucide-react": "^0.561.0",
+    "netlify-cli": "^23.13.0",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",
     "react-router-dom": "6.22.3"
@@ -20,6 +27,7 @@
   "devDependencies": {
     "@types/node": "^22.14.0",
     "@vitejs/plugin-react": "^5.0.0",
+    "drizzle-kit": "^0.31.8",
     "typescript": "~5.8.2",
     "vite": "^6.2.0"
   }

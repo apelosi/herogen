@@ -161,20 +161,59 @@ const LandingPage = () => {
     return () => clearTimeout(timer);
   }, [navigate, user]);
 
-  const handleAuthAction = () => {
+  const handleAuthAction = async () => {
     if (user) {
       navigate('/dashboard');
     } else {
-      // If not logged in, trigger the Google login prompt immediately
-      if ((window as any).google?.accounts?.id) {
-        (window as any).google.accounts.id.prompt((notification: any) => {
-          if (notification.isNotDisplayed() || notification.isSkippedValue()) {
-            // If One Tap is suppressed, scroll to the explicit button in the header
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+      // Use Google's OAuth2 popup flow directly
+      const google = (window as any).google;
+      if (google?.accounts?.oauth2) {
+        const client = google.accounts.oauth2.initTokenClient({
+          client_id: CONFIG.GOOGLE_CLIENT_ID,
+          scope: 'email profile',
+          callback: async (response: any) => {
+            if (response.access_token) {
+              setLoading(true);
+              try {
+                // Fetch user info from Google
+                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
+                  headers: { Authorization: `Bearer ${response.access_token}` }
+                });
+                const googleUser = await userInfoResponse.json();
+
+                // Create/update user in database
+                let dbUser = await dbService.getUser(googleUser.sub);
+                if (!dbUser) {
+                  dbUser = {
+                    id: googleUser.sub,
+                    name: googleUser.name,
+                    email: googleUser.email,
+                    photoUrl: null
+                  };
+                  await dbService.saveUser(dbUser);
+                }
+
+                localStorage.setItem("herogen_user_id", dbUser.id);
+                setUser(dbUser);
+                navigate('/dashboard');
+              } catch (error) {
+                console.error("Auth failed", error);
+              } finally {
+                setLoading(false);
+              }
+            }
           }
         });
+        client.requestAccessToken();
       } else {
-        window.scrollTo({ top: 0, behavior: 'smooth' });
+        // Fallback: try to click the Google button
+        const googleBtn = document.getElementById('google-signin-btn');
+        if (googleBtn) {
+          const actualButton = googleBtn.querySelector('div[role="button"]') as HTMLElement;
+          if (actualButton) {
+            actualButton.click();
+          }
+        }
       }
     }
   };
@@ -333,7 +372,7 @@ const LandingPage = () => {
 
           <div className="bg-white p-6 md:p-12 rounded-[3rem] shadow-2xl border-4 border-slate-900 relative animate-fade-in" key={currentSample.id}>
             {/* Updated Badge: Displays Alignment + Theme Name */}
-            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-400 border-4 border-slate-900 px-8 py-3 rounded-full shadow-lg z-20 font-black uppercase tracking-widest text-slate-900 flex items-center gap-3">
+            <div className="absolute -top-8 left-1/2 -translate-x-1/2 bg-yellow-400 border-4 border-slate-900 px-8 py-3 rounded-full shadow-lg z-20 font-black uppercase tracking-widest text-slate-900 flex items-center gap-3 whitespace-nowrap">
               <ThemeIcon size={20} />
               <span>{currentSample.alignment} • {currentSample.theme}</span>
             </div>

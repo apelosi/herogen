@@ -15,15 +15,15 @@ interface ComicDisplayProps {
   onRestart?: () => void; // Used only in creation mode
 }
 
-const ComicDisplay: React.FC<ComicDisplayProps> = ({ 
-  story, 
-  mode, 
-  comicId, 
+const ComicDisplay: React.FC<ComicDisplayProps> = ({
+  story,
+  mode,
+  comicId,
   isPublic = false,
-  onRate, 
-  onDelete, 
-  onTogglePublic, 
-  onRestart 
+  onRate,
+  onDelete,
+  onTogglePublic,
+  onRestart
 }) => {
   const [rating, setRating] = useState<number>(story.rating || 0);
   const [copied, setCopied] = useState(false);
@@ -49,12 +49,12 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
 
   const downloadPDF = () => {
     if (isGenerating) {
-        alert("Please wait for all panels to finish generating.");
-        return;
+      alert("Please wait for all panels to finish generating.");
+      return;
     }
 
     const doc = new jsPDF();
-    
+
     // Add Title
     doc.setFontSize(22);
     doc.text(story.title, 105, 20, { align: 'center' });
@@ -77,12 +77,12 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
       }
       if (yOffset + panelHeight + textSpace > pageHeight - bottomMargin) {
         doc.addPage();
-        yOffset = 20; 
+        yOffset = 20;
       }
-      
+
       try {
         if (panel.imageUrl) {
-            doc.addImage(panel.imageUrl, 'PNG', x, yOffset, panelWidth, panelHeight);
+          doc.addImage(panel.imageUrl, 'PNG', x, yOffset, panelWidth, panelHeight);
         }
         doc.setFontSize(10);
         const splitText = doc.splitTextToSize(panel.caption, panelWidth);
@@ -111,10 +111,10 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
           {story.title}
         </h1>
         {isGenerating && (
-            <div className="flex items-center justify-center gap-3 text-indigo-600 font-black uppercase tracking-widest text-sm animate-pulse">
-                <Loader2 className="animate-spin" size={20} />
-                <span>Manifesting Reality...</span>
-            </div>
+          <div className="flex items-center justify-center gap-3 text-indigo-600 font-black uppercase tracking-widest text-sm animate-pulse">
+            <Loader2 className="animate-spin" size={20} />
+            <span>Manifesting Reality...</span>
+          </div>
         )}
       </div>
 
@@ -123,17 +123,17 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
           <div key={panel.id} className="bg-white rounded-[2rem] shadow-2xl overflow-hidden border-4 border-slate-900 shadow-[12px_12px_0px_0px_rgba(0,0,0,1)] flex flex-col transition-all hover:translate-x-1 hover:translate-y-1 hover:shadow-none">
             <div className="relative aspect-square bg-slate-50 flex items-center justify-center overflow-hidden">
               {panel.imageUrl ? (
-                  <img src={panel.imageUrl} alt={`Panel ${panel.id}`} className="w-full h-full object-cover animate-fade-in" />
+                <img src={panel.imageUrl} alt={`Panel ${panel.id}`} className="w-full h-full object-cover animate-fade-in" />
               ) : (
-                  <div className="w-full h-full bg-slate-50 flex flex-col items-center justify-center text-gray-400 relative">
-                      <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-white to-slate-50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]"></div>
-                      <div className="relative z-10 flex flex-col items-center gap-6">
-                        <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center border-2 border-slate-100">
-                           <Loader2 className="animate-spin text-indigo-400" size={40} />
-                        </div>
-                        <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Rendering Scene</span>
-                      </div>
+                <div className="w-full h-full bg-slate-50 flex flex-col items-center justify-center text-gray-400 relative">
+                  <div className="absolute inset-0 bg-gradient-to-r from-slate-50 via-white to-slate-50 animate-[shimmer_2s_infinite] bg-[length:200%_100%]"></div>
+                  <div className="relative z-10 flex flex-col items-center gap-6">
+                    <div className="w-20 h-20 rounded-3xl bg-white shadow-xl flex items-center justify-center border-2 border-slate-100">
+                      <Loader2 className="animate-spin text-indigo-400" size={40} />
+                    </div>
+                    <span className="text-xs font-black uppercase tracking-[0.3em] text-slate-400">Rendering Scene</span>
                   </div>
+                </div>
               )}
             </div>
             <div className="p-8 bg-white flex-grow flex items-center justify-center text-center z-20 relative border-t-4 border-slate-900">
@@ -147,7 +147,7 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
 
       {/* Control Panel */}
       <div className="bg-white rounded-[3rem] shadow-2xl p-10 border-4 border-slate-900 space-y-10">
-        
+
         {/* Rating Section - Hidden in Public Mode */}
         {mode !== 'public' && (
           <div className="text-center space-y-6">
@@ -169,84 +169,90 @@ const ComicDisplay: React.FC<ComicDisplayProps> = ({
 
         {/* Action Buttons */}
         <div className="flex flex-col gap-8">
-           {/* Sharing Controls for Owner */}
-           {mode === 'owner' && onTogglePublic && (
+          {/* Sharing Controls for Owner */}
+          {mode === 'owner' && onTogglePublic && (
             <div className="flex flex-col md:flex-row items-center justify-between bg-indigo-50/50 p-8 rounded-[2rem] border-2 border-indigo-100 gap-8">
               <div className="flex items-center gap-6">
-                 <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isPublic ? 'bg-indigo-600 text-white' : 'bg-white text-gray-300 border-2 border-gray-100'}`}>
-                    {isPublic ? <Globe size={28}/> : <Lock size={28}/>}
-                 </div>
-                 <div className="text-left">
-                    <p className="font-black text-slate-900 uppercase text-lg tracking-tight">{isPublic ? 'Saga Public' : 'Classified Saga'}</p>
-                    <p className="text-sm text-slate-500 font-medium">{isPublic ? 'The link below is now live.' : 'Only your eyes can see this.'}</p>
-                 </div>
+                <div className={`w-14 h-14 rounded-2xl flex items-center justify-center shadow-lg ${isPublic ? 'bg-indigo-600 text-white' : 'bg-white text-gray-300 border-2 border-gray-100'}`}>
+                  {isPublic ? <Globe size={28} /> : <Lock size={28} />}
+                </div>
+                <div className="text-left">
+                  <p className="font-black text-slate-900 uppercase text-lg tracking-tight">{isPublic ? 'Saga Public' : 'Classified Saga'}</p>
+                  <p className="text-sm text-slate-500 font-medium">{isPublic ? 'The link below is now live.' : 'Only your eyes can see this.'}</p>
+                </div>
               </div>
-              
+
               <div className="flex items-center gap-4 w-full md:w-auto">
                 {isPublic && (
-                    <button 
-                        onClick={copyToClipboard}
-                        className="flex-1 md:flex-none flex items-center justify-center gap-2 text-indigo-600 font-black uppercase tracking-widest text-xs bg-white px-6 py-4 rounded-xl hover:bg-indigo-600 hover:text-white transition-all border-2 border-indigo-100 shadow-sm"
-                    >
-                        <LinkIcon size={18}/>
-                        {copied ? 'Copied' : 'Copy Link'}
-                    </button>
+                  <button
+                    onClick={copyToClipboard}
+                    className="flex-1 md:flex-none flex items-center justify-center gap-2 text-indigo-600 font-black uppercase tracking-widest text-xs bg-white px-6 py-4 rounded-xl hover:bg-indigo-600 hover:text-white transition-all border-2 border-indigo-100 shadow-sm"
+                  >
+                    <LinkIcon size={18} />
+                    {copied ? 'Copied' : 'Copy Link'}
+                  </button>
                 )}
-                <button 
-                    onClick={() => onTogglePublic(!isPublic)}
-                    className={`flex-1 md:flex-none px-8 py-4 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-xl ${isPublic ? 'bg-white text-slate-900 border-2 border-slate-900 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-indigo-600'}`}
+                <button
+                  onClick={() => onTogglePublic(!isPublic)}
+                  className={`flex-1 md:flex-none px-8 py-4 rounded-xl font-black text-xs tracking-widest uppercase transition-all shadow-xl ${isPublic ? 'bg-white text-slate-900 border-2 border-slate-900 hover:bg-slate-50' : 'bg-slate-900 text-white hover:bg-indigo-600'}`}
                 >
-                    {isPublic ? 'Restrict Access' : 'Go Public'}
+                  {isPublic ? 'Restrict Access' : 'Go Public'}
                 </button>
               </div>
             </div>
-           )}
+          )}
 
-           <div className="flex flex-col md:grid md:grid-cols-3 items-center gap-6 w-full">
-              {/* Left Side: Navigation / Secondary Action */}
-              <div className="flex justify-center md:justify-start w-full order-2 md:order-1">
-                {mode === 'owner' ? (
-                  <Link 
-                    to="/dashboard" 
-                    className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
-                  >
-                      <ArrowLeft size={20} />
-                      Back to HQ
-                  </Link>
-                ) : mode === 'creation' && onRestart && (
-                  <button onClick={onRestart} className="w-full sm:w-auto flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all shadow-xl">
-                      Reset Reality
-                  </button>
-                )}
-              </div>
-
-              {/* Center Side: Primary Action - Perfectly Centered */}
-              <div className="flex justify-center w-full order-1 md:order-2">
-                <button
-                  onClick={downloadPDF}
-                  disabled={isGenerating}
-                  className={`w-full sm:w-auto flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
+          <div className="flex flex-col md:grid md:grid-cols-3 items-center gap-6 w-full">
+            {/* Left Side: Navigation / Secondary Action */}
+            <div className="flex justify-center md:justify-start w-full order-2 md:order-1">
+              {mode === 'owner' ? (
+                <Link
+                  to="/dashboard"
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-slate-900 text-white font-black text-sm uppercase tracking-widest hover:bg-black hover:scale-105 active:scale-95 transition-all shadow-xl"
                 >
-                  {isGenerating ? <Loader2 className="animate-spin" size={24}/> : <Download size={24} />}
-                  {isGenerating ? 'Processing' : 'Download PDF'}
+                  <ArrowLeft size={20} />
+                  Back to HQ
+                </Link>
+              ) : mode === 'creation' && onRestart && (
+                <button onClick={onRestart} className="w-full sm:w-auto flex items-center gap-2 px-10 py-5 rounded-2xl border-4 border-slate-900 font-black text-sm uppercase tracking-widest text-slate-900 hover:bg-slate-50 hover:scale-105 active:scale-95 transition-all shadow-xl">
+                  Reset Reality
                 </button>
-              </div>
+              )}
+            </div>
 
-              {/* Right Side: Destructive Action */}
-              <div className="flex justify-center md:justify-end w-full order-3">
-                {mode === 'owner' && onDelete && (
-                  <button
-                      onClick={() => {
-                          if(window.confirm("Delete this chronicle forever? This cannot be undone.")) onDelete();
-                      }}
-                      className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-red-600 text-white font-black text-sm uppercase tracking-widest hover:bg-red-700 hover:scale-105 active:scale-95 transition-all shadow-xl"
-                  >
-                      <Trash2 size={20} />
-                      DELETE
-                  </button>
-                )}
-              </div>
-           </div>
+            {/* Center Side: Primary Action - Perfectly Centered */}
+            <div className="flex justify-center w-full order-1 md:order-2">
+              <button
+                onClick={downloadPDF}
+                disabled={isGenerating}
+                className={`w-full sm:w-auto flex items-center justify-center gap-3 bg-indigo-600 text-white px-10 py-5 rounded-2xl font-black text-sm uppercase tracking-widest shadow-2xl transition-all ${isGenerating ? 'opacity-50 cursor-not-allowed' : 'hover:bg-indigo-700 hover:scale-105 active:scale-95'}`}
+              >
+                {isGenerating ? <Loader2 className="animate-spin" size={24} /> : <Download size={24} />}
+                {isGenerating ? 'Processing' : 'Download PDF'}
+              </button>
+            </div>
+
+            {/* Right Side: Destructive Action */}
+            <div className="flex justify-center md:justify-end w-full order-3">
+              {mode === 'owner' && onDelete && (
+                <button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault();
+                    e.stopPropagation();
+                    const confirmed = window.confirm("Delete this chronicle forever? This cannot be undone.");
+                    if (confirmed) {
+                      onDelete();
+                    }
+                  }}
+                  className="w-full sm:w-auto flex items-center justify-center gap-2 px-10 py-5 rounded-2xl bg-red-600 text-white font-black text-sm uppercase tracking-widest hover:bg-red-700 hover:scale-105 active:scale-95 transition-all shadow-xl"
+                >
+                  <Trash2 size={20} />
+                  DELETE
+                </button>
+              )}
+            </div>
+          </div>
         </div>
       </div>
     </div>
