@@ -1,51 +1,74 @@
 import { User } from "../types";
+import { neonClient } from "./neonClient";
 import { dbService } from "./db";
 
 /**
- * Robust authentication service using the newer Google Identity Services.
+ * Authentication service backed by Neon Auth (Better Auth).
  */
 export const authService = {
-  /**
-   * Decodes a JWT token from Google to get user info without a separate fetch.
-   */
-  decodeJwt(token: string) {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const jsonPayload = decodeURIComponent(atob(base64).split('').map(function(c) {
-        return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(jsonPayload);
-  },
+  async signInWithGoogle(callbackURL: string): Promise<void> {
+    const result = await neonClient.auth.signIn.social({
+      provider: "google",
+      callbackURL,
+    });
 
-  /**
-   * Handles the credential returned by the official GSI button.
-   */
-  async handleCredentialResponse(credential: string): Promise<User> {
-    const googleUser = this.decodeJwt(credential);
-    const userId = googleUser.sub;
-    
-    let user = await dbService.getUser(userId);
-    if (!user) {
-      user = {
-        id: userId,
-        name: googleUser.name,
-        email: googleUser.email,
-        photoUrl: null
-      };
-      await dbService.saveUser(user);
+    if (result.error) {
+      throw new Error(result.error.message);
     }
-    
-    localStorage.setItem("herogen_user_id", user.id);
-    return user;
   },
 
   async signOut(): Promise<void> {
-    localStorage.removeItem("herogen_user_id");
+    await neonClient.auth.signOut();
   },
 
   async getCurrentUser(): Promise<User | null> {
-    const id = localStorage.getItem("herogen_user_id");
-    if (!id) return null;
-    return await dbService.getUser(id) || null;
+    const session = await neonClient.auth.getSession();
+    if (session.error) {
+      throw new Error(session.error.message);
+    }
+
+    if (!session.data?.session) return null;
+
+    const authUserId = (session.data.session as any).userId as string | undefined;
+    if (!authUserId) return null;
+
+    // Ensure an application-level profile exists (RLS restricts to self).
+    const existing = await neonClient
+      .from("users")
+      .select("*")
+      .eq("auth_user_id", authUserId)
+      .limit(1);
+
+    if (existing.error) {
+      throw new Error(existing.error.message);
+    }
+
+    if (!existing.data || existing.data.length === 0) {
+      await dbService.saveUser({
+        id: authUserId,
+        name: "User",
+        email: "",
+        photoUrl: null,
+      });
+    }
+
+    // Return the row from our app table (includes photoUrl).
+    const row = await neonClient
+      .from("users")
+      .select("*")
+      .eq("auth_user_id", authUserId)
+      .limit(1);
+    if (row.error) {
+      throw new Error(row.error.message);
+    }
+    if (!row.data || row.data.length === 0) return null;
+
+    const user = row.data[0] as any;
+    return {
+      id: user.id,
+      name: user.name,
+      email: user.email,
+      photoUrl: user.photo_url ?? null,
+    };
   }
 };

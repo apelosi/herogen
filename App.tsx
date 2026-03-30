@@ -4,7 +4,6 @@ import { User, SavedComic, Theme, Alignment } from './types';
 import { THEMES } from './constants';
 import { authService } from './services/auth';
 import { dbService } from './services/db';
-import { CONFIG } from './config';
 import { analyzeImage, generateStoryScript, generatePanelImage } from './services/geminiService';
 import ThemeSelector from './components/ThemeSelector';
 import AlignmentSelector from './components/AlignmentSelector';
@@ -47,7 +46,12 @@ const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => 
             </button>
           </div>
         ) : (
-          <div id="google-signin-btn"></div>
+          <Link
+            to="/"
+            className="text-indigo-600 hover:text-indigo-800 font-black text-sm uppercase tracking-widest transition-colors"
+          >
+            Sign In
+          </Link>
         )}
       </div>
     </div>
@@ -124,96 +128,20 @@ const LandingPage = () => {
       setUser(u);
     };
     checkUser();
-
-    const initGSI = () => {
-      if ((window as any).google?.accounts?.id) {
-        (window as any).google.accounts.id.initialize({
-          client_id: CONFIG.GOOGLE_CLIENT_ID,
-          callback: async (response: any) => {
-            setLoading(true);
-            try {
-              const user = await authService.handleCredentialResponse(response.credential);
-              setUser(user);
-              navigate('/dashboard');
-            } catch (error) {
-              console.error("Auth failed", error);
-            } finally {
-              setLoading(false);
-            }
-          }
-        });
-
-        // Render button in Header
-        const headerBtn = document.getElementById("google-signin-btn");
-        if (headerBtn) {
-          (window as any).google.accounts.id.renderButton(
-            headerBtn,
-            { theme: "outline", size: "large", shape: "pill", text: "continue_with" }
-          );
-        }
-
-        // Trigger One Tap prompt automatically on load
-        (window as any).google.accounts.id.prompt();
-      }
-    };
-
-    const timer = setTimeout(initGSI, 800);
-    return () => clearTimeout(timer);
   }, [navigate, user]);
 
   const handleAuthAction = async () => {
     if (user) {
       navigate('/dashboard');
     } else {
-      // Use Google's OAuth2 popup flow directly
-      const google = (window as any).google;
-      if (google?.accounts?.oauth2) {
-        const client = google.accounts.oauth2.initTokenClient({
-          client_id: CONFIG.GOOGLE_CLIENT_ID,
-          scope: 'email profile',
-          callback: async (response: any) => {
-            if (response.access_token) {
-              setLoading(true);
-              try {
-                // Fetch user info from Google
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${response.access_token}` }
-                });
-                const googleUser = await userInfoResponse.json();
-
-                // Create/update user in database
-                let dbUser = await dbService.getUser(googleUser.sub);
-                if (!dbUser) {
-                  dbUser = {
-                    id: googleUser.sub,
-                    name: googleUser.name,
-                    email: googleUser.email,
-                    photoUrl: null
-                  };
-                  await dbService.saveUser(dbUser);
-                }
-
-                localStorage.setItem("herogen_user_id", dbUser.id);
-                setUser(dbUser);
-                navigate('/dashboard');
-              } catch (error) {
-                console.error("Auth failed", error);
-              } finally {
-                setLoading(false);
-              }
-            }
-          }
-        });
-        client.requestAccessToken();
-      } else {
-        // Fallback: try to click the Google button
-        const googleBtn = document.getElementById('google-signin-btn');
-        if (googleBtn) {
-          const actualButton = googleBtn.querySelector('div[role="button"]') as HTMLElement;
-          if (actualButton) {
-            actualButton.click();
-          }
-        }
+      setLoading(true);
+      try {
+        const callbackURL = `${window.location.origin}${window.location.pathname}#/auth/callback`;
+        await authService.signInWithGoogle(callbackURL);
+      } catch (error) {
+        console.error("Auth failed", error);
+      } finally {
+        setLoading(false);
       }
     }
   };
