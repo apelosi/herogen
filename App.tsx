@@ -1,15 +1,15 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useNavigate, useParams, Navigate } from 'react-router-dom';
 import { User, SavedComic, Theme, Alignment } from './types';
 import { THEMES } from './constants';
 import { authService } from './services/auth';
 import { dbService } from './services/db';
-import { CONFIG } from './config';
 import { analyzeImage, generateStoryScript, generatePanelImage } from './services/geminiService';
 import ThemeSelector from './components/ThemeSelector';
 import AlignmentSelector from './components/AlignmentSelector';
 import ComicDisplay from './components/ComicDisplay';
 import LoadingScreen from './components/LoadingScreen';
+import { Toast, ToastState } from './components/Toast';
 import * as Icons from 'lucide-react';
 import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, ArrowRight, ChevronRight, LogOut, Zap, Rocket, Sword, Shield, BookOpen } from 'lucide-react';
 
@@ -17,7 +17,15 @@ import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, Arro
 const PhotoCapture = lazy(() => import('./components/PhotoCapture'));
 
 // --- COMMON COMPONENTS ---
-const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => void }) => (
+const AppHeader = ({
+  user,
+  onSignOut,
+  onSignIn,
+}: {
+  user?: User | null;
+  onSignOut?: () => void;
+  onSignIn?: () => void;
+}) => (
   <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 py-4 px-6 sticky top-0 z-50">
     <div className="max-w-6xl mx-auto flex justify-between items-center">
       <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -47,7 +55,13 @@ const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => 
             </button>
           </div>
         ) : (
-          <div id="google-signin-btn"></div>
+          <button
+            onClick={onSignIn}
+            className="inline-flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
+          >
+            <LogIn size={16} />
+            Sign in
+          </button>
         )}
       </div>
     </div>
@@ -116,104 +130,41 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
+  const [toast, setToast] = useState<ToastState>({ open: false, message: "", type: "info" });
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkUser = async () => {
-      const u = await authService.getCurrentUser();
-      setUser(u);
-    };
-    checkUser();
-
-    const initGSI = () => {
-      if ((window as any).google?.accounts?.id) {
-        (window as any).google.accounts.id.initialize({
-          client_id: CONFIG.GOOGLE_CLIENT_ID,
-          callback: async (response: any) => {
-            setLoading(true);
-            try {
-              const user = await authService.handleCredentialResponse(response.credential);
-              setUser(user);
-              navigate('/dashboard');
-            } catch (error) {
-              console.error("Auth failed", error);
-            } finally {
-              setLoading(false);
-            }
-          }
+      try {
+        const u = await authService.getCurrentUser();
+        setUser(u);
+      } catch (e: any) {
+        setToast({
+          open: true,
+          type: "error",
+          message: e?.message ?? "Failed to restore session",
         });
-
-        // Render button in Header
-        const headerBtn = document.getElementById("google-signin-btn");
-        if (headerBtn) {
-          (window as any).google.accounts.id.renderButton(
-            headerBtn,
-            { theme: "outline", size: "large", shape: "pill", text: "continue_with" }
-          );
-        }
-
-        // Trigger One Tap prompt automatically on load
-        (window as any).google.accounts.id.prompt();
       }
     };
-
-    const timer = setTimeout(initGSI, 800);
-    return () => clearTimeout(timer);
+    checkUser();
   }, [navigate, user]);
 
   const handleAuthAction = async () => {
     if (user) {
       navigate('/dashboard');
     } else {
-      // Use Google's OAuth2 popup flow directly
-      const google = (window as any).google;
-      if (google?.accounts?.oauth2) {
-        const client = google.accounts.oauth2.initTokenClient({
-          client_id: CONFIG.GOOGLE_CLIENT_ID,
-          scope: 'email profile',
-          callback: async (response: any) => {
-            if (response.access_token) {
-              setLoading(true);
-              try {
-                // Fetch user info from Google
-                const userInfoResponse = await fetch('https://www.googleapis.com/oauth2/v3/userinfo', {
-                  headers: { Authorization: `Bearer ${response.access_token}` }
-                });
-                const googleUser = await userInfoResponse.json();
-
-                // Create/update user in database
-                let dbUser = await dbService.getUser(googleUser.sub);
-                if (!dbUser) {
-                  dbUser = {
-                    id: googleUser.sub,
-                    name: googleUser.name,
-                    email: googleUser.email,
-                    photoUrl: null
-                  };
-                  await dbService.saveUser(dbUser);
-                }
-
-                localStorage.setItem("herogen_user_id", dbUser.id);
-                setUser(dbUser);
-                navigate('/dashboard');
-              } catch (error) {
-                console.error("Auth failed", error);
-              } finally {
-                setLoading(false);
-              }
-            }
-          }
+      setLoading(true);
+      try {
+        const callbackURL = `${window.location.origin}${window.location.pathname}#/auth/callback`;
+        await authService.signInWithGoogle(callbackURL);
+      } catch (error) {
+        setToast({
+          open: true,
+          type: "error",
+          message: (error as any)?.message ?? "Sign-in failed",
         });
-        client.requestAccessToken();
-      } else {
-        // Fallback: try to click the Google button
-        const googleBtn = document.getElementById('google-signin-btn');
-        if (googleBtn) {
-          const actualButton = googleBtn.querySelector('div[role="button"]') as HTMLElement;
-          if (actualButton) {
-            actualButton.click();
-          }
-        }
+      } finally {
+        setLoading(false);
       }
     }
   };
@@ -264,7 +215,23 @@ const LandingPage = () => {
            background-size: 20px 20px;
          }
        `}</style>
-      <AppHeader user={user} onSignOut={() => authService.signOut().then(() => setUser(null))} />
+      <AppHeader
+        user={user}
+        onSignIn={handleAuthAction}
+        onSignOut={() =>
+          authService
+            .signOut()
+            .then(() => setUser(null))
+            .catch((e: any) =>
+              setToast({
+                open: true,
+                type: "error",
+                message: e?.message ?? "Sign-out failed",
+              })
+            )
+        }
+      />
+      <Toast toast={toast} onClose={() => setToast((t) => ({ ...t, open: false }))} />
 
       <section className="relative pt-12 md:pt-20 pb-24 px-6 overflow-hidden halftone-bg">
         <div className="absolute top-10 right-[10%] opacity-10 rotate-12 pointer-events-none hidden lg:block">

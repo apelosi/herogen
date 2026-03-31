@@ -23,7 +23,7 @@ npm run preview                # Preview production build
 
 **Development Server**: Use `npm run dev` which runs Vite directly. Access the app at **http://localhost:3000**.
 
-**Database Context**: The `@netlify/neon` adapter connects directly to Neon PostgreSQL via HTTP from the browser. Environment variables are loaded from `.env` by Vite automatically.
+**Database Context**: The app uses **Neon Data API (PostgREST)** from the browser via `@neondatabase/neon-js`, authenticated with **Neon Auth (Better Auth)** JWTs. No Postgres connection strings should ever be shipped to the browser bundle.
 
 ### Database Commands (Drizzle ORM + Neon PostgreSQL)
 ```bash
@@ -46,16 +46,19 @@ The app uses a sophisticated multi-model Gemini workflow defined in [services/ge
 
 All Gemini API calls use `process.env.API_KEY` (mapped from `GEMINI_API_KEY` in .env via [vite.config.ts:15-16](vite.config.ts#L15-L16)). Each function creates a fresh `GoogleGenAI` instance immediately before the API call.
 
-### Database Architecture (Drizzle + Neon)
+### Database Architecture (Neon Data API + RLS)
 
 The app was migrated from IndexedDB to PostgreSQL (Netlify/Neon) on 2026-01-04. The database uses Drizzle ORM with Neon PostgreSQL accessed via HTTP (not WebSockets). Schema is in [db/schema.ts](db/schema.ts):
 
 - **users table**: Stores Google OAuth user data plus `photoUrl` (base64-encoded "hero face" selfie)
 - **comics table**: Stores comic metadata with `panels` as JSONB array, `themeId` reference, `alignment` enum, `isPublic` flag for sharing, and Unix `createdAt` timestamp
 
-Database connection is configured in [db/index.ts](db/index.ts) using `@netlify/neon` adapter with explicit connection string passing. The service layer ([services/db.ts](services/db.ts)) provides upsert semantics with `onConflictDoUpdate` for both users and comics.
+Database access from the client goes through the Neon Data API (PostgREST). The client uses `@neondatabase/neon-js` (`services/neonClient.ts`) and reads:
 
-**Database URL Priority**: `process.env.DATABASE_URL` || `process.env.NETLIFY_DATABASE_URL`
+- `VITE_NEON_AUTH_URL`
+- `VITE_NEON_DATA_API_URL`
+
+**Security**: Postgres connection strings (`DATABASE_URL`, `NETLIFY_DATABASE_URL`) must never be exposed to the browser bundle.
 
 **Migration Details**:
 - Initial migration: [migrations/0000_volatile_hellfire_club.sql](migrations/0000_volatile_hellfire_club.sql)
@@ -63,15 +66,9 @@ Database connection is configured in [db/index.ts](db/index.ts) using `@netlify/
 - Migrations are managed via `npm run db:generate` and `npm run db:migrate` (see Development Commands above)
 - NEVER edit migration files manually - always use drizzle-kit commands
 
-### Authentication Flow
+### Authentication Flow (Neon Auth / Better Auth)
 
-Uses Google Identity Services (GSI) instead of legacy OAuth libraries ([services/auth.ts](services/auth.ts)):
-
-1. GSI button renders in header (`google.accounts.id.renderButton`)
-2. On credential response, JWT is decoded client-side (no server validation needed for demo)
-3. User ID extracted from `sub` claim, stored in localStorage as `herogen_user_id`
-4. User record upserted to database (photoUrl starts as null)
-5. User redirected to dashboard
+Authentication is handled by Neon Auth (Better Auth). The app uses `@neondatabase/neon-js` to initiate Google OAuth and obtain a session. After redirect back to `#/auth/callback`, the app loads the session and ensures an app-level profile row exists in `public.users`.
 
 ### Route Structure (React Router v6)
 
@@ -108,8 +105,8 @@ Sample comic images stored in `public/sample-1/` and `public/sample-2/` for land
 Required variables in `.env`:
 
 - `GEMINI_API_KEY`: Google AI API key (billing must be enabled for image generation)
-- `VITE_GOOGLE_CLIENT_ID`: Google OAuth client ID for authentication
-- `DATABASE_URL` or `NETLIFY_DATABASE_URL`: Neon PostgreSQL connection string
+- `VITE_NEON_AUTH_URL`: Neon Auth base URL (Better Auth)
+- `VITE_NEON_DATA_API_URL`: Neon Data API base URL (PostgREST)
 
 The app exposes these to the client via Vite's `define` config ([vite.config.ts:14-18](vite.config.ts#L14-L18)).
 

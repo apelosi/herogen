@@ -14,7 +14,7 @@ export default defineConfig(({ mode }) => {
     define: {
       'process.env.API_KEY': JSON.stringify(env.GEMINI_API_KEY),
       'process.env.GEMINI_API_KEY': JSON.stringify(env.GEMINI_API_KEY),
-      'process.env.DATABASE_URL': JSON.stringify(env.DATABASE_URL || env.NETLIFY_DATABASE_URL)
+      // DB connection strings must never be shipped to the browser bundle.
     },
     resolve: {
       alias: {
