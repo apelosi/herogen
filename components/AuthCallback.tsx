@@ -2,10 +2,16 @@ import { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 
 import { authService } from "../services/auth";
+import { Toast, ToastState } from "./Toast";
 
 export default function AuthCallback() {
   const navigate = useNavigate();
   const [error, setError] = useState<string | null>(null);
+  const [toast, setToast] = useState<ToastState>({
+    open: false,
+    message: "",
+    type: "info",
+  });
 
   useEffect(() => {
     let cancelled = false;
@@ -14,7 +20,11 @@ export default function AuthCallback() {
         await authService.getCurrentUser();
         if (!cancelled) navigate("/dashboard", { replace: true });
       } catch (e: any) {
-        if (!cancelled) setError(e?.message ?? "Authentication failed");
+        if (!cancelled) {
+          const msg = e?.message ?? "Authentication failed";
+          setError(msg);
+          setToast({ open: true, message: msg, type: "error" });
+        }
       }
     })();
     return () => {
@@ -25,6 +35,7 @@ export default function AuthCallback() {
   if (error) {
     return (
       <div className="min-h-screen bg-white flex items-center justify-center px-6">
+        <Toast toast={toast} onClose={() => setToast((t) => ({ ...t, open: false }))} />
         <div className="max-w-md w-full bg-white border border-slate-200 rounded-2xl shadow-xl p-6">
           <div className="text-slate-900 font-black text-xl uppercase tracking-tight">
             Login failed

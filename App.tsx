@@ -1,4 +1,4 @@
-import React, { useState, useEffect, Suspense, lazy } from 'react';
+import React, { useState, useEffect, Suspense, lazy, useCallback } from 'react';
 import { HashRouter as Router, Routes, Route, Link, useNavigate, useParams, Navigate } from 'react-router-dom';
 import { User, SavedComic, Theme, Alignment } from './types';
 import { THEMES } from './constants';
@@ -9,6 +9,7 @@ import ThemeSelector from './components/ThemeSelector';
 import AlignmentSelector from './components/AlignmentSelector';
 import ComicDisplay from './components/ComicDisplay';
 import LoadingScreen from './components/LoadingScreen';
+import { Toast, ToastState } from './components/Toast';
 import * as Icons from 'lucide-react';
 import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, ArrowRight, ChevronRight, LogOut, Zap, Rocket, Sword, Shield, BookOpen } from 'lucide-react';
 
@@ -16,7 +17,15 @@ import { Key, LogIn, Plus, Trash2, Calendar, Star, Home, Loader2, Sparkles, Arro
 const PhotoCapture = lazy(() => import('./components/PhotoCapture'));
 
 // --- COMMON COMPONENTS ---
-const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => void }) => (
+const AppHeader = ({
+  user,
+  onSignOut,
+  onSignIn,
+}: {
+  user?: User | null;
+  onSignOut?: () => void;
+  onSignIn?: () => void;
+}) => (
   <header className="bg-white/80 backdrop-blur-md border-b border-gray-100 py-4 px-6 sticky top-0 z-50">
     <div className="max-w-6xl mx-auto flex justify-between items-center">
       <Link to={user ? "/dashboard" : "/"} className="flex items-center gap-2 hover:opacity-80 transition-opacity">
@@ -46,12 +55,13 @@ const AppHeader = ({ user, onSignOut }: { user?: User | null, onSignOut?: () => 
             </button>
           </div>
         ) : (
-          <Link
-            to="/"
-            className="text-indigo-600 hover:text-indigo-800 font-black text-sm uppercase tracking-widest transition-colors"
+          <button
+            onClick={onSignIn}
+            className="inline-flex items-center gap-2 bg-slate-900 text-white px-5 py-2.5 rounded-full font-black text-sm uppercase tracking-widest hover:scale-[1.02] active:scale-[0.98] transition-all shadow-lg"
           >
-            Sign In
-          </Link>
+            <LogIn size={16} />
+            Sign in
+          </button>
         )}
       </div>
     </div>
@@ -120,12 +130,21 @@ const LandingPage = () => {
   const [loading, setLoading] = useState(false);
   const [user, setUser] = useState<User | null>(null);
   const [currentSampleIndex, setCurrentSampleIndex] = useState(0);
+  const [toast, setToast] = useState<ToastState>({ open: false, message: "", type: "info" });
   const navigate = useNavigate();
 
   useEffect(() => {
     const checkUser = async () => {
-      const u = await authService.getCurrentUser();
-      setUser(u);
+      try {
+        const u = await authService.getCurrentUser();
+        setUser(u);
+      } catch (e: any) {
+        setToast({
+          open: true,
+          type: "error",
+          message: e?.message ?? "Failed to restore session",
+        });
+      }
     };
     checkUser();
   }, [navigate, user]);
@@ -139,7 +158,11 @@ const LandingPage = () => {
         const callbackURL = `${window.location.origin}${window.location.pathname}#/auth/callback`;
         await authService.signInWithGoogle(callbackURL);
       } catch (error) {
-        console.error("Auth failed", error);
+        setToast({
+          open: true,
+          type: "error",
+          message: (error as any)?.message ?? "Sign-in failed",
+        });
       } finally {
         setLoading(false);
       }
@@ -192,7 +215,23 @@ const LandingPage = () => {
            background-size: 20px 20px;
          }
        `}</style>
-      <AppHeader user={user} onSignOut={() => authService.signOut().then(() => setUser(null))} />
+      <AppHeader
+        user={user}
+        onSignIn={handleAuthAction}
+        onSignOut={() =>
+          authService
+            .signOut()
+            .then(() => setUser(null))
+            .catch((e: any) =>
+              setToast({
+                open: true,
+                type: "error",
+                message: e?.message ?? "Sign-out failed",
+              })
+            )
+        }
+      />
+      <Toast toast={toast} onClose={() => setToast((t) => ({ ...t, open: false }))} />
 
       <section className="relative pt-12 md:pt-20 pb-24 px-6 overflow-hidden halftone-bg">
         <div className="absolute top-10 right-[10%] opacity-10 rotate-12 pointer-events-none hidden lg:block">
