@@ -11,6 +11,8 @@ export const dbService = {
     }
 
     const payload = {
+      // Keep `id` aligned with the Neon Auth user id (Option B).
+      id: authUserId,
       auth_user_id: authUserId,
       name: user.name,
       email: user.email,
