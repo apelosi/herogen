@@ -699,14 +699,9 @@ const PublicView = () => {
   const { id } = useParams();
   const [comic, setComic] = useState<SavedComic | null>(null);
   const [loading, setLoading] = useState(true);
-  const [user, setUser] = useState<User | null>(null);
 
   useEffect(() => {
     const load = async () => {
-      // Get current user to handle the 'Go to Dashboard' link
-      const u = await authService.getCurrentUser();
-      setUser(u);
-
       if (!id) return;
       const c = await dbService.getComic(id);
       if (c && c.isPublic) setComic(c);
@@ -747,16 +742,10 @@ const PublicView = () => {
               <p className="text-indigo-200 text-lg font-medium max-w-lg mx-auto">Turn your selfie into an AI-generated comic strip as the Hero or Villain in 1 of 12 themes.</p>
               <div className="pt-4">
                 <Link
-                  to={user ? "/dashboard" : "/"}
-                  onClick={(e) => {
-                    if (!user) {
-                      e.preventDefault();
-                      window.scrollTo({ top: 0, behavior: 'smooth' });
-                    }
-                  }}
+                  to="/"
                   className="inline-flex items-center gap-3 bg-white text-slate-900 px-12 py-5 rounded-2xl font-black text-xl uppercase tracking-widest hover:scale-105 active:scale-95 transition-all shadow-xl"
                 >
-                  {user ? "Go to Dashboard" : "Forge Your Own Saga"} <ArrowRight size={24} />
+                  Forge Your Own Saga <ArrowRight size={24} />
                 </Link>
               </div>
             </div>
