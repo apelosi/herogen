@@ -6,6 +6,11 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 **IMPORTANT**: Whenever you make changes to the codebase, new requirements are added, or existing requirements change, you MUST update this CLAUDE.md file to reflect those changes. This ensures continuity across different Claude Code sessions and agents.
 
+## Memory & Troubleshooting
+
+- **Session memory**: See `MEMORY.md` for high-signal context meant to persist across agent sessions.
+- **Troubleshooting playbook**: See `docs/troubleshooting.md` for production/debug runbooks.
+
 ## Project Overview
 
 HeroGen is a React 19 web application that transforms user selfies into personalized 6-panel superhero/villain comic strips using Google's Gemini 3 AI models. Users authenticate via Google, upload a photo as their "hero face", select a theme and alignment (hero/villain), and the app generates a complete comic with consistent character rendering across all panels.
