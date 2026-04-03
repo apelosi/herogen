@@ -648,16 +648,32 @@ const ComicDetail = () => {
   const [comic, setComic] = useState<SavedComic | null>(null);
   const [loading, setLoading] = useState(true);
   const [user, setUser] = useState<User | null>(null);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      const u = await authService.getCurrentUser();
-      setUser(u);
-      const c = await dbService.getComic(id);
-      if (!c) { navigate('/dashboard'); return; }
-      setComic(c);
-      setLoading(false);
+      try {
+        const u = await authService.getCurrentUser();
+        setUser(u);
+
+        // If not authenticated, fall back to the public share route.
+        if (!u) {
+          navigate(`/share/${id}`, { replace: true });
+          return;
+        }
+
+        const c = await dbService.getComic(id);
+        if (!c) {
+          navigate("/dashboard");
+          return;
+        }
+        setComic(c);
+      } catch (e: any) {
+        setError(e?.message ?? "Failed to load comic");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id, navigate]);
@@ -675,6 +691,20 @@ const ComicDetail = () => {
   };
 
   if (loading) return <LoadingScreen message="Unrolling Saga..." />;
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-20 bg-gray-50 gap-6 halftone-bg">
+        <div className="w-24 h-24 bg-white border-4 border-slate-900 rounded-full flex items-center justify-center text-slate-300 shadow-xl">
+          <Shield size={48} />
+        </div>
+        <h2 className="text-4xl font-black text-slate-900 uppercase">Saga Unavailable</h2>
+        <p className="text-slate-500 font-medium text-center max-w-md">{error}</p>
+        <Link to="/dashboard" className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all">
+          Back to HQ
+        </Link>
+      </div>
+    );
+  }
   if (!comic) return null;
 
   return (
@@ -699,18 +729,38 @@ const PublicView = () => {
   const { id } = useParams();
   const [comic, setComic] = useState<SavedComic | null>(null);
   const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const load = async () => {
       if (!id) return;
-      const c = await dbService.getComic(id);
-      if (c && c.isPublic) setComic(c);
-      setLoading(false);
+      try {
+        const c = await dbService.getPublicComic(id);
+        if (c) setComic(c);
+      } catch (e: any) {
+        setError(e?.message ?? "Failed to load public saga");
+      } finally {
+        setLoading(false);
+      }
     };
     load();
   }, [id]);
 
   if (loading) return <LoadingScreen message="Retrieving Saga..." />;
+  if (error) {
+    return (
+      <div className="min-h-screen flex flex-col items-center justify-center p-20 bg-gray-50 gap-6 halftone-bg">
+        <div className="w-24 h-24 bg-white border-4 border-slate-900 rounded-full flex items-center justify-center text-slate-300 shadow-xl">
+          <Shield size={48} />
+        </div>
+        <h2 className="text-4xl font-black text-slate-900 uppercase">Saga Unavailable</h2>
+        <p className="text-slate-500 font-medium text-center max-w-md">{error}</p>
+        <Link to="/" className="bg-slate-900 text-white px-10 py-4 rounded-2xl font-black uppercase tracking-widest shadow-xl hover:bg-indigo-600 transition-all">
+          Head Home
+        </Link>
+      </div>
+    );
+  }
   if (!comic) return <div className="min-h-screen flex flex-col items-center justify-center p-20 bg-gray-50 gap-6 halftone-bg">
     <div className="w-24 h-24 bg-white border-4 border-slate-900 rounded-full flex items-center justify-center text-slate-300 shadow-xl">
       <Shield size={48} />
