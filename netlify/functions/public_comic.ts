@@ -12,6 +12,12 @@ type ComicRow = {
   rating: number;
   created_at: number;
 };
+
+type Panel = {
+  id: number;
+  caption: string;
+  imageUrl?: string;
+};
  
 export const handler: Handler = async (event) => {
   try {
@@ -60,6 +66,16 @@ export const handler: Handler = async (event) => {
     }
  
     const comic = rows[0];
+    const panels = (Array.isArray(comic.panels) ? comic.panels : []) as Panel[];
+    const safePanels = panels.map((p) => ({
+      id: p.id,
+      caption: p.caption,
+      // Avoid Netlify function payload limits by serving images from a separate endpoint.
+      imageUrl: `/.netlify/functions/public_panel_image?comicId=${encodeURIComponent(id)}&panelId=${encodeURIComponent(
+        String(p.id)
+      )}`,
+    }));
+
     return {
       statusCode: 200,
       headers: {
@@ -73,7 +89,7 @@ export const handler: Handler = async (event) => {
         title: comic.title,
         themeId: comic.theme_id,
         alignment: comic.alignment,
-        panels: comic.panels,
+        panels: safePanels,
         isPublic: comic.is_public,
         rating: comic.rating,
         createdAt: comic.created_at,
