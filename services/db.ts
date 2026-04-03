@@ -2,6 +2,28 @@ import { SavedComic, User } from "../types";
 import { neonClient } from "./neonClient";
 
 export const dbService = {
+  async getPublicComic(id: string): Promise<SavedComic | undefined> {
+    const url = `/.netlify/functions/public_comic?id=${encodeURIComponent(id)}`;
+    const res = await fetch(url, { method: "GET" });
+    if (res.status === 404) return undefined;
+    if (!res.ok) {
+      const text = await res.text().catch(() => "");
+      throw new Error(text || `Failed to load public comic (${res.status})`);
+    }
+    const data = (await res.json()) as any;
+    return {
+      id: data.id,
+      userId: data.userId,
+      title: data.title,
+      themeId: data.themeId,
+      alignment: data.alignment as "HERO" | "VILLAIN",
+      panels: data.panels as any,
+      isPublic: data.isPublic,
+      rating: data.rating,
+      createdAt: data.createdAt,
+    };
+  },
+
   async saveUser(user: User): Promise<void> {
     // The authenticated user can only upsert their own row due to RLS.
     const session = await neonClient.auth.getSession();
