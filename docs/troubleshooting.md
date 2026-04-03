@@ -49,3 +49,13 @@ Use Netlify CLI while linked to the correct site:
 
 Both functions should show `isDeployed: true`.
 
+## Verification discipline (process)
+
+If someone reports “this is merged” or “this exists on `main`”, verify before claiming:
+
+- Use GitHub API to check file presence:
+  - `gh api repos/<owner>/<repo>/contents/<path>?ref=main`
+- Or verify via git:
+  - `git show origin/main:<path>` (check exit code)
+- For production behavior, reproduce in a real browser session (include incognito where relevant) and capture Network/console evidence.
+
